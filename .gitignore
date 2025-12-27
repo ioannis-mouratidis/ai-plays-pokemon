@@ -39,6 +39,7 @@ roms/*.gba
 roms/*.gb
 roms/*.gbc
 roms/*.zip
+roms/*.sav
 
 # Emulator files (user must download)
 emulator/mGBA.exe
