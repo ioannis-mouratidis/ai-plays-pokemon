@@ -109,9 +109,6 @@ def get_current_pokemon_state() -> dict[str, Any]:
         if not pokemon["exists"]:
             return {"error": "No active Pokemon found"}
 
-        # Get moves
-        moves = memory_reader.get_current_pokemon_moves(1)
-
         return {
             "species": pokemon["species"],
             "level": pokemon["level"],
@@ -124,7 +121,7 @@ def get_current_pokemon_state() -> dict[str, Any]:
             "sp_defense": pokemon["sp_defense"],
             "status": pokemon["status"],
             "can_battle": pokemon["can_battle"],
-            "moves": moves
+            "moves": pokemon["moves"]
         }
 
     except Exception as e:
@@ -210,11 +207,38 @@ def get_battle_status() -> dict[str, Any]:
         - battle_type: "wild", "trainer", or "none"
         - turn_number: Current turn count
         - can_flee: Whether fleeing is possible
+        - enemy_party_count: Number of Pokemon in enemy's party
+        - enemy_alive_count: Number of enemy Pokemon that can still battle
     """
     initialize_components()
 
     try:
-        return battle_detector.get_battle_status()
+        status = battle_detector.get_battle_status()
+
+        # Add enemy party information if in battle
+        if status["in_battle"]:
+            # Count enemy Pokemon
+            enemy_party_count = 0
+            enemy_alive_count = 0
+
+            for slot in range(1, 7):
+                try:
+                    enemy_pokemon = memory_reader.get_enemy_pokemon(slot)
+                    if enemy_pokemon.get("exists"):
+                        enemy_party_count += 1
+                        if enemy_pokemon.get("can_battle"):
+                            enemy_alive_count += 1
+                except Exception:
+                    # Stop counting when we hit an invalid slot
+                    break
+
+            status["enemy_party_count"] = enemy_party_count
+            status["enemy_alive_count"] = enemy_alive_count
+        else:
+            status["enemy_party_count"] = 0
+            status["enemy_alive_count"] = 0
+
+        return status
 
     except Exception as e:
         return {"error": f"Failed to get battle status: {str(e)}"}

@@ -1,0 +1,11 @@
+Why does get_current_pokemon_moves in @mcp_server/memory_reader.py  have placeholders?
+
+Why do I need the function write_memory in @mcp_server/mgba_client.py  
+
+The use_attach function assumes you always start from the top-left. This is incorrect and needs to be fixed. 
+
+Read through project and identify any placeholders or incorrectly implemented functionality
+
+Are all of the functions in mgba_client necessary? I don't want to write anything to memory, I want to interact with the game only as a player could.
+
+Should I use mgba-http's REST API or access directly via the LUA script.

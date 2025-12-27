@@ -224,7 +224,7 @@ The project is ready when:
 
 **Current Progress: 60%** (Core complete, testing pending)
 
-## Contact
+## Help
 
 For issues or questions, refer to:
 - [QUICKSTART.md](QUICKSTART.md) for setup
