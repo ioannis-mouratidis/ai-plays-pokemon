@@ -1,0 +1,39 @@
+{
+  "version": "FireRed_v1.0_US",
+  "battle": {
+    "flags": "0x02022B4B",
+    "type": "0x02022B4C"
+  },
+  "enemy_pokemon": [
+    "0x0202402C",
+    "0x02024090",
+    "0x020240F4",
+    "0x02024158",
+    "0x020241BC",
+    "0x02024220"
+  ],
+  "party_pokemon": [
+    "0x02024284",
+    "0x020242E8",
+    "0x0202434C",
+    "0x020243B0",
+    "0x02024414",
+    "0x02024478"
+  ],
+  "pokemon_structure": {
+    "personality": 0,
+    "otid": 4,
+    "nickname": 8,
+    "language": 28,
+    "species": 32,
+    "level": 84,
+    "current_hp": 86,
+    "max_hp": 88,
+    "attack": 90,
+    "defense": 92,
+    "speed": 94,
+    "sp_attack": 96,
+    "sp_defense": 98,
+    "status": 80
+  }
+}

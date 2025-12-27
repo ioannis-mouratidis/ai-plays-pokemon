@@ -1,0 +1,83 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+NUL
+
+# ROM files (do not distribute)
+roms/*.gba
+roms/*.gb
+roms/*.gbc
+roms/*.zip
+
+# Emulator files (user must download)
+emulator/mGBA.exe
+emulator/mgba-sdl.exe
+emulator/*.dll
+emulator/mGBA-http*.exe
+emulator/*.lua
+emulator/*.txt
+emulator/*.html
+emulator/*.dat
+emulator/*.sqlite3
+emulator/*.ini
+emulator/licenses/
+emulator/scripts/
+emulator/shaders/
+# Keep the documentation but ignore emulator config
+emulator/appsettings.json
+emulator/config.ini
+emulator/qt.ini
+emulator/library.sqlite3
+emulator/nointro.sqlite3
+
+# Save states
+saves/*.ss*
+saves/*.sav
+
+# Screenshots
+screenshots/*.png
+screenshots/*.bmp
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets
+.env
+*.key
+credentials.json
