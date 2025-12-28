@@ -436,11 +436,22 @@ class MemoryReader:
         }
 
     def get_full_party(self) -> List[Dict[str, Any]]:
-        """Get all 6 party Pokemon"""
+        """
+        Get all party Pokemon including fainted ones.
+
+        Returns all Pokemon in the party with valid species IDs, including
+        fainted Pokemon (HP = 0). This matches what is shown in the Pokemon
+        switching menu, where fainted Pokemon are displayed but grayed out.
+
+        Returns:
+            List of Pokemon dictionaries with slot numbers and full stats.
+            Fainted Pokemon will have can_battle=False and current_hp=0.
+        """
         party = []
         for slot in range(1, 7):
             pokemon = self.get_party_pokemon(slot)
-            if pokemon["exists"]:
+            # Include any Pokemon with valid species, even if HP = 0
+            if pokemon["species_id"] > 0 and pokemon["species_id"] <= 386:
                 party.append({
                     "slot": slot,
                     **pokemon

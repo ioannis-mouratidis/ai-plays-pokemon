@@ -466,6 +466,23 @@ class BattleController:
             if pokemon_slot == active_slot:
                 return {"success": False, "error": "Pokemon is already active in battle"}
 
+            # Read party BEFORE opening menu to identify target Pokemon
+            # (at this point, get_full_party() returns default slot order)
+            party_before_menu = self.memory.get_full_party()
+
+            # Find target Pokemon by slot number
+            target_pokemon_data = None
+            for pokemon in party_before_menu:
+                if pokemon['slot'] == pokemon_slot:
+                    target_pokemon_data = pokemon
+                    break
+
+            # Validate (this is redundant with checks above, but defensive)
+            if not target_pokemon_data:
+                return {"success": False, "error": f"Pokemon slot {pokemon_slot} not found"}
+            if not target_pokemon_data['can_battle']:
+                return {"success": False, "error": f"Pokemon in slot {pokemon_slot} cannot battle"}
+
             # Capture state before switch
             pre_state = self.capture_battle_state()
 
@@ -476,18 +493,25 @@ class BattleController:
             # Wait for menu to open
             time.sleep(0.2)
 
-            # Get current party order (reflects what's shown in the switching menu)
+            # Read party AFTER opening menu - now returns menu display order
+            # (which may differ from default slot order after previous switches)
+            # This always includes fainted Pokemon since the menu shows them
             party_in_menu = self.memory.get_full_party()
 
-            # Find which position (0-5) has the target Pokemon
+            # Find target Pokemon in menu by comparing entire Pokemon object
+            # This handles duplicate species correctly (e.g., two Rattata)
             target_position = None
             for i, pokemon in enumerate(party_in_menu):
-                if pokemon['slot'] == pokemon_slot:
+                # Compare all identifying fields to ensure exact match
+                if (pokemon['species_id'] == target_pokemon_data['species_id'] and
+                    pokemon['level'] == target_pokemon_data['level'] and
+                    pokemon['current_hp'] == target_pokemon_data['current_hp'] and
+                    pokemon['max_hp'] == target_pokemon_data['max_hp']):
                     target_position = i
                     break
 
             if target_position is None:
-                return {"success": False, "error": f"Pokemon slot {pokemon_slot} not found in menu"}
+                return {"success": False, "error": f"Target Pokemon not found in menu"}
 
             # Navigate cursor to target position
             if not self.navigate_to_pokemon_position(target_position):

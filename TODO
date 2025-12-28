@@ -15,4 +15,17 @@
   - Validates against switching to already active Pokemon
   - Documentation updated to clarify that get_team_state() returns context-dependent ordering
 
+✓ FIXED: Switch function menu ordering bug
+  - execute_switch() now reads party BEFORE opening menu (default slot order)
+  - Identifies target Pokemon by slot and saves entire Pokemon object
+  - Opens switch menu, then reads party AGAIN (now in menu display order)
+  - Matches target Pokemon by comparing all fields (species_id, level, current_hp, max_hp)
+  - Correctly handles duplicate species and menu reordering after previous switches
+
 Implement a simplified get_party that doesn't return so much information for when it is not needed.
+
+Switch function is implemented by Claude providing a slot number, MCP reads pokemon in battle menu and identifies which pokemon Claude wants to switch to, MCP opens pokemon switch menu, then identifies the slot of the pokemon that Claude wanted to switch to and executes the switch. This is to circumvent the get_team function giving a different order while in the battle menu and the pokemon switch menu, but causes a lot of unessary calls to the mgba-http API and might be improved in the future.
+
+Implement manual button press buttons in MCP server so that Claude can make moves when no existing MCP function exist.
+
+Write project instructions, to make it clear what the goals of the project are to Claude (either as project instructions or as part of MCP)

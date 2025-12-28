@@ -171,16 +171,21 @@ def get_enemy_pokemon_state() -> dict[str, Any]:
 @mcp.tool()
 def get_team_state() -> dict[str, Any]:
     """
-    Get status of all Pokemon in your party.
+    Get status of all Pokemon in your party, including fainted ones.
 
-    Returns information for all 6 party slots including:
+    Returns information for all party Pokemon including:
     - Species and level
     - Current/max HP
     - Status condition
-    - Whether they can battle (not fainted)
+    - Whether they can battle (fainted Pokemon have can_battle=False)
     - Which slot is currently active in battle
 
-    IMPORTANT: The party array order depends on context:
+    IMPORTANT: The party array includes ALL Pokemon, even fainted ones.
+    Fainted Pokemon are included because they appear in the switching menu
+    (grayed out) and affect cursor positions. Check the 'can_battle' field
+    to determine if a Pokemon can be switched to.
+
+    The party array order depends on context:
     - During normal battle (main menu): Returns DEFAULT PARTY ORDER (slots 1-6)
     - During Pokemon switching menu: Returns CURRENT MENU DISPLAY ORDER
 
@@ -189,7 +194,7 @@ def get_team_state() -> dict[str, Any]:
     is currently battling.
 
     Returns:
-        Dictionary with party array, or error if not in battle
+        Dictionary with party array (including fainted), active_slot, and party_size
     """
     initialize_components()
 
