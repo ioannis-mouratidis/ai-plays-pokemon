@@ -11,7 +11,6 @@ setup(
     install_requires=[
         "mcp>=0.5.0",
         "requests>=2.31.0",
-        "anthropic>=0.18.0",
         "pillow>=10.0.0",
     ],
     python_requires=">=3.10",
