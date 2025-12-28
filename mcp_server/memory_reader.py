@@ -445,38 +445,3 @@ class MemoryReader:
                     **pokemon
                 })
         return party
-
-    def get_current_pokemon_moves(self, slot: int = 1) -> List[Dict[str, Any]]:
-        """
-        Get moves for a Pokemon (simplified - would need to read move data)
-
-        Args:
-            slot: Pokemon slot
-
-        Returns:
-            List of move dictionaries
-        """
-        # Note: Full implementation would read from Pokemon move data structure
-        # For now, return placeholder
-        # Move data is at offset 44-56 in Pokemon structure (4 moves, 2 bytes each + 1 PP byte)
-
-        pokemon_addr_str = self.config["party_pokemon"][slot - 1]
-        pokemon_addr = self._hex_to_int(pokemon_addr_str)
-
-        # Read move data (moves at offset 44, PP at offset 52)
-        data = self.client.read_memory(pokemon_addr + 44, 12)
-
-        moves = []
-        for i in range(4):
-            move_id = int.from_bytes(data[i*2:i*2+2], 'little')
-            pp = data[8 + i]  # PP starts at offset +8 from moves
-
-            if move_id > 0:
-                moves.append({
-                    "move_id": move_id,
-                    "name": MOVE_NAMES.get(move_id, f"Move {move_id}"),
-                    "pp": pp,
-                    "slot": i + 1
-                })
-
-        return moves
