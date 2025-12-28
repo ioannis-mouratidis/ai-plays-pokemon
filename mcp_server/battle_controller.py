@@ -232,9 +232,6 @@ class BattleController:
             # Calculate results
             results = self.calculate_turn_results(pre_state, post_state)
 
-            # Increment turn counter
-            self.detector.increment_turn()
-
             return {
                 "success": True,
                 "move_index": move_index,
@@ -301,9 +298,6 @@ class BattleController:
             # Capture post-switch state
             post_state = self.capture_battle_state()
             results = self.calculate_turn_results(pre_state, post_state)
-
-            # Increment turn counter
-            self.detector.increment_turn()
 
             return {
                 "success": True,

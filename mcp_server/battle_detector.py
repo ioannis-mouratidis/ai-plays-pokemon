@@ -16,7 +16,6 @@ class BattleDetector:
     def __init__(self, client: MGBAClient, config_path: Optional[str] = None):
         self.client = client
         self.last_battle_state = False
-        self.turn_count = 0
 
         # Load memory addresses
         if config_path is None:
@@ -107,17 +106,11 @@ class BattleDetector:
 
         if current_state and not self.last_battle_state:
             transition = "battle_started"
-            self.turn_count = 0
         elif not current_state and self.last_battle_state:
             transition = "battle_ended"
-            self.turn_count = 0
 
         self.last_battle_state = current_state
         return transition
-
-    def increment_turn(self):
-        """Increment turn counter"""
-        self.turn_count += 1
 
     def get_battle_status(self) -> Dict[str, Any]:
         """
@@ -132,14 +125,12 @@ class BattleDetector:
             return {
                 "in_battle": False,
                 "battle_type": "none",
-                "turn_number": 0,
                 "can_flee": False
             }
 
         return {
             "in_battle": True,
             "battle_type": self.get_battle_type(),
-            "turn_number": self.turn_count,
             "can_flee": self.can_flee()
         }
 
