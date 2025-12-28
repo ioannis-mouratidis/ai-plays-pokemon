@@ -26,6 +26,19 @@ Implement a simplified get_party that doesn't return so much information for whe
 
 Switch function is implemented by Claude providing a slot number, MCP reads pokemon in battle menu and identifies which pokemon Claude wants to switch to, MCP opens pokemon switch menu, then identifies the slot of the pokemon that Claude wanted to switch to and executes the switch. This is to circumvent the get_team function giving a different order while in the battle menu and the pokemon switch menu, but causes a lot of unessary calls to the mgba-http API and might be improved in the future.
 
-Implement manual button press buttons in MCP server so that Claude can make moves when no existing MCP function exist.
+✓ FIXED: Implemented press_buttons MCP function
+  - Added press_buttons() tool for submitting button sequences
+  - Validates button names (A, B, Start, Select, L, R, Up, Down, Left, Right)
+  - Configurable delay_ms parameter between button presses (default: 100ms)
+  - Documentation instructs Claude to take screenshots before/after for verification
+  - Returns structured response with success status, buttons pressed, and timing info
+
+✓ FIXED: Screenshot functionality using FastMCP Image class
+  - Updated get_screenshot() to return FastMCP Image object
+  - Converts PIL Image to PNG bytes before passing to Image class
+  - Properly follows MCP protocol for image data transmission
+  - Claude can now correctly view and interpret screenshots
 
 Write project instructions, to make it clear what the goals of the project are to Claude (either as project instructions or as part of MCP)
+
+Potentially do not expose delay in the press_buttons function to lessen the burden on Claude

@@ -4,9 +4,10 @@ Exposes tools for Claude AI to play Pokemon battles
 """
 
 import sys
-import json
+import time
 from typing import Any
-from mcp.server.fastmcp import FastMCP
+from io import BytesIO
+from mcp.server.fastmcp import FastMCP, Image
 
 from .mgba_client import create_client, MGBAClient
 from .memory_reader import MemoryReader
@@ -57,30 +58,30 @@ def initialize_components():
 # ============================================================================
 
 @mcp.tool()
-def get_screenshot() -> str:
+def get_screenshot() -> Image:
     """
-    Capture current emulator screen as base64-encoded PNG image.
+    Capture current emulator screen as an image.
 
     NOTE: Uses a workaround - calls mGBA screenshot endpoint which saves to disk,
     then reads the most recent screenshot file.
 
     Returns:
-        Base64-encoded PNG string (240x160 pixels), or error if unavailable
+        Image object (240x160 pixels PNG) that can be viewed by Claude
+
+    Raises:
+        Exception: If screenshot capture fails
     """
     initialize_components()
     try:
-        return client.get_screenshot_base64()
-    except NotImplementedError as e:
-        return json.dumps({
-            "error": "Screenshot functionality not available",
-            "reason": str(e),
-            "workaround": "Use get_current_pokemon_state and other memory reading tools to understand battle state"
-        }, indent=2)
+        pil_image = client.get_screenshot()
+        # Convert PIL Image to bytes
+        buffer = BytesIO()
+        pil_image.save(buffer, format="PNG")
+        image_bytes = buffer.getvalue()
+        return Image(data=image_bytes, format="png")
     except Exception as e:
-        return json.dumps({
-            "error": "Failed to capture screenshot",
-            "reason": str(e)
-        }, indent=2)
+        # FastMCP Image doesn't support error returns, so raise exception
+        raise Exception(f"Failed to capture screenshot: {str(e)}")
 
 
 @mcp.tool()
@@ -337,6 +338,98 @@ def switch_pokemon(pokemon_slot: int) -> dict[str, Any]:
 
     except Exception as e:
         return {"success": False, "error": f"Exception during switch: {str(e)}"}
+
+
+@mcp.tool()
+def press_buttons(buttons: list[str], delay_ms: int = 100) -> dict[str, Any]:
+    """
+    Press a sequence of button inputs on the emulator.
+
+    Use this for navigation and actions not covered by specialized tools
+    (use_attack, switch_pokemon). This is a low-level control function
+    for general emulator interaction.
+
+    IMPORTANT: Always capture screenshots BEFORE and AFTER button sequences
+    to verify their effects. Use get_screenshot() to see what happened.
+
+    Common use cases:
+    - Navigating menus (Up, Down, Left, Right, A, B)
+    - Opening/closing menus (Start, Select)
+    - Overworld movement (directional buttons)
+    - Confirming or canceling dialogs (A, B)
+
+    Args:
+        buttons: List of button names to press in sequence.
+                Valid buttons: "A", "B", "Start", "Select", "L", "R",
+                              "Up", "Down", "Left", "Right"
+        delay_ms: Milliseconds to wait between button presses (default: 100ms)
+                 Increase for menus that need time to animate.
+                 Decrease for faster navigation.
+
+    Returns:
+        Dictionary with:
+        - success: Whether all buttons were pressed successfully
+        - buttons_pressed: List of buttons that were pressed
+        - total_delay_ms: Total time spent (approximate)
+        - error: Error message if failed
+
+    Example usage workflow:
+        1. Call get_screenshot() to see current state
+        2. Call press_buttons(["Down", "Down", "A"]) to navigate
+        3. Call get_screenshot() again to verify the result
+        4. Repeat as needed based on what you see
+
+    Note: This does NOT wait for game state changes or verify effects.
+    You must use get_screenshot() and memory reading tools to confirm
+    the buttons had the intended effect.
+    """
+    initialize_components()
+
+    # Validate button names
+    valid_buttons = {"A", "B", "Start", "Select", "L", "R", "Up", "Down", "Left", "Right"}
+    invalid_buttons = [b for b in buttons if b not in valid_buttons]
+
+    if invalid_buttons:
+        return {
+            "success": False,
+            "error": f"Invalid button names: {invalid_buttons}. Valid buttons: {sorted(valid_buttons)}"
+        }
+
+    if not buttons:
+        return {
+            "success": False,
+            "error": "No buttons provided. Must specify at least one button."
+        }
+
+    if delay_ms < 0:
+        return {
+            "success": False,
+            "error": "delay_ms must be non-negative"
+        }
+
+    try:
+        # Press each button in sequence
+        for button in buttons:
+            client.press_button(button, frames=1)
+            if delay_ms > 0:
+                time.sleep(delay_ms / 1000.0)
+
+        # Calculate total time spent
+        total_delay = len(buttons) * delay_ms if len(buttons) > 1 else 0
+
+        return {
+            "success": True,
+            "buttons_pressed": buttons,
+            "button_count": len(buttons),
+            "total_delay_ms": total_delay,
+            "message": "Buttons pressed successfully. Use get_screenshot() to verify effects."
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to press buttons: {str(e)}"
+        }
 
 
 # ============================================================================
