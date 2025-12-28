@@ -180,6 +180,14 @@ def get_team_state() -> dict[str, Any]:
     - Whether they can battle (not fainted)
     - Which slot is currently active in battle
 
+    IMPORTANT: The party array order depends on context:
+    - During normal battle (main menu): Returns DEFAULT PARTY ORDER (slots 1-6)
+    - During Pokemon switching menu: Returns CURRENT MENU DISPLAY ORDER
+
+    The menu display order changes based on previous switches during battle.
+    The 'active_slot' field indicates which Pokemon (by default slot number)
+    is currently battling.
+
     Returns:
         Dictionary with party array, or error if not in battle
     """

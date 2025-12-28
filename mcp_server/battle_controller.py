@@ -87,6 +87,27 @@ class BattleController:
             print(f"Warning: Could not read battle menu cursor position: {e}", file=sys.stderr)
             return 1  # Default to position 1 (FIGHT) on error
 
+    def get_pokemon_menu_cursor_position(self) -> int:
+        """
+        Read current Pokemon menu cursor position from memory
+
+        Returns:
+            Current cursor position (0-5 for Pokemon, 7 for Cancel), or 0 if read fails
+        """
+        try:
+            cursor_address = int(self.memory.config["battle"]["pokemon_menu_cursor"], 16)
+            cursor_value = self.client.read_memory(cursor_address, 1)[0]
+
+            # Valid values: 0-5 (Pokemon slots) or 7 (Cancel button)
+            if cursor_value in list(range(6)) + [7]:
+                return cursor_value
+            else:
+                return 0  # Default to first position
+
+        except Exception as e:
+            print(f"Warning: Could not read Pokemon menu cursor: {e}", file=sys.stderr)
+            return 0
+
     def navigate_to_battle_menu_option(self, current_pos: int, target_pos: int):
         """
         Navigate from current cursor position to target battle menu option
@@ -229,6 +250,63 @@ class BattleController:
         elif target_col < current_col:
             self.client.press_button("LEFT")
             time.sleep(0.1)
+
+    def navigate_to_pokemon_position(self, target_position: int) -> bool:
+        """
+        Navigate the Pokemon menu cursor to a specific position.
+
+        Strategy:
+        1. Read current cursor position
+        2. Calculate number of presses needed and which direction
+        3. Press UP or DOWN that many times
+        4. Verify we reached the target
+        5. Retry up to 2 times if verification fails
+
+        Args:
+            target_position: Target position (0-5)
+
+        Returns:
+            True if successfully navigated, False otherwise
+        """
+        if not 0 <= target_position <= 5:
+            return False
+
+        max_retries = 2
+
+        for attempt in range(max_retries + 1):
+            # Read current position
+            current_pos = self.get_pokemon_menu_cursor_position()
+
+            # Calculate how many presses needed and which direction
+            if current_pos < target_position:
+                # Need to go down
+                button = "DOWN"
+                presses_needed = target_position - current_pos
+            elif current_pos > target_position:
+                # Need to go up
+                button = "UP"
+                presses_needed = current_pos - target_position
+            else:
+                # Already at target
+                return True
+
+            # Press the button the calculated number of times
+            for _ in range(presses_needed):
+                self.client.press_button(button)
+                time.sleep(0.1)
+
+            # Wait for cursor to settle
+            time.sleep(0.2)
+
+            # Verify we reached the target
+            final_pos = self.get_pokemon_menu_cursor_position()
+            if final_pos == target_position:
+                return True
+
+            # If not at target and we have retries left, try again
+            print(f"Navigation attempt {attempt + 1} failed: at position {final_pos}, expected {target_position}", file=sys.stderr)
+
+        return False  # Failed after all retries
 
     def wait_for_turn_completion(self, pre_state: Dict[str, Any], max_wait_seconds: int = 10) -> bool:
         """
@@ -383,6 +461,11 @@ class BattleController:
             if not target_pokemon["can_battle"]:
                 return {"success": False, "error": f"Pokemon in slot {pokemon_slot} has fainted"}
 
+            # Check if trying to switch to already active Pokemon
+            active_slot = self.memory.get_active_party_slot()
+            if pokemon_slot == active_slot:
+                return {"success": False, "error": "Pokemon is already active in battle"}
+
             # Capture state before switch
             pre_state = self.capture_battle_state()
 
@@ -390,10 +473,25 @@ class BattleController:
             if not self.select_battle_menu_option("POKEMON"):
                 return {"success": False, "error": "Failed to select POKEMON option"}
 
-            # Navigate to target Pokemon (slots are vertical list)
-            for _ in range(pokemon_slot - 1):
-                self.client.press_button("DOWN")
-                time.sleep(0.1)
+            # Wait for menu to open
+            time.sleep(0.2)
+
+            # Get current party order (reflects what's shown in the switching menu)
+            party_in_menu = self.memory.get_full_party()
+
+            # Find which position (0-5) has the target Pokemon
+            target_position = None
+            for i, pokemon in enumerate(party_in_menu):
+                if pokemon['slot'] == pokemon_slot:
+                    target_position = i
+                    break
+
+            if target_position is None:
+                return {"success": False, "error": f"Pokemon slot {pokemon_slot} not found in menu"}
+
+            # Navigate cursor to target position
+            if not self.navigate_to_pokemon_position(target_position):
+                return {"success": False, "error": f"Failed to navigate to position {target_position}"}
 
             # Select Pokemon
             self.client.press_button("A")

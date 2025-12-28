@@ -1,12 +1,18 @@
 ✓ FIXED: Updated move_cursor address to 0x02023FFC for FireRed v1.1
   - The use_attack function now correctly reads cursor position from memory
-  - navigate_to_move() handles navigation from any starting position 
+  - navigate_to_move() handles navigation from any starting position
 
-FIXED: Current pokemon returns wrong pokemon
+✓ FIXED: Current pokemon returns wrong pokemon
+  - Added active_party_slot address (0x002023BCE)
+  - get_current_pokemon_state() now uses get_active_party_slot()
+  - capture_battle_state() now uses get_active_party_slot()
 
-Fix switch pokemon.
+✓ FIXED: Switch pokemon menu navigation
+  - Added pokemon_menu_cursor address (0x00203B0A9)
+  - execute_switch() now reads menu order from get_full_party()
+  - Navigates using cursor position read from memory with UP/DOWN navigation
+  - Works regardless of previous switches during battle
+  - Validates against switching to already active Pokemon
+  - Documentation updated to clarify that get_team_state() returns context-dependent ordering
 
-Get team executes correctly when in the main battle screen. But when in the switch pokemon screen, it returns the pokemon with the order shown on the screen (that is the currently active pokemon is in position 1). I need to:
-a) differentiate between the two, so that it's clear that the active pokemon returned by get_team refers only to the default ordering and not the ordering shown on the pokemon switching menu). 
-b) Improve pokemon switcher so it calls get team, identifies the current order and selects the correct pokemon to switch to.
-c) verify that it works even when a pokemon has fainted.
+Implement a simplified get_party that doesn't return so much information for when it is not needed.

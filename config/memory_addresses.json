@@ -5,7 +5,8 @@
     "type": "0x02022B4C",
     "battle_menu_cursor": "0x02023FF8",
     "move_menu_cursor": "0x02023FFC",
-    "active_party_slot": "0x002023BCE"
+    "active_party_slot": "0x002023BCE",
+    "pokemon_menu_cursor": "0x00203B0A9"
   },
   "enemy_pokemon": [
     "0x0202402C",
