@@ -62,8 +62,8 @@ def get_screenshot() -> Image:
     """
     Capture current emulator screen as an image.
 
-    NOTE: Uses a workaround - calls mGBA screenshot endpoint which saves to disk,
-    then reads the most recent screenshot file.
+    When viewing menu screens, look for selection indicators (arrows, highlighting,
+    or cursor icons) to determine which option is currently selected.
 
     Returns:
         Image object (240x160 pixels PNG) that can be viewed by Claude
