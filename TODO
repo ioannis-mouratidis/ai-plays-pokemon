@@ -22,10 +22,6 @@
   - Matches target Pokemon by comparing all fields (species_id, level, current_hp, max_hp)
   - Correctly handles duplicate species and menu reordering after previous switches
 
-Implement a simplified get_party that doesn't return so much information for when it is not needed.
-
-Switch function is implemented by Claude providing a slot number, MCP reads pokemon in battle menu and identifies which pokemon Claude wants to switch to, MCP opens pokemon switch menu, then identifies the slot of the pokemon that Claude wanted to switch to and executes the switch. This is to circumvent the get_team function giving a different order while in the battle menu and the pokemon switch menu, but causes a lot of unessary calls to the mgba-http API and might be improved in the future.
-
 ✓ FIXED: Implemented press_buttons MCP function
   - Added press_buttons() tool for submitting button sequences
   - Validates button names (A, B, Start, Select, L, R, Up, Down, Left, Right)
@@ -39,6 +35,12 @@ Switch function is implemented by Claude providing a slot number, MCP reads poke
   - Properly follows MCP protocol for image data transmission
   - Claude can now correctly view and interpret screenshots
 
+Implement a simplified get_party that doesn't return so much information for when it is not needed.
+
+Switch function is implemented by Claude providing a slot number, MCP reads pokemon in battle menu and identifies which pokemon Claude wants to switch to, MCP opens pokemon switch menu, then identifies the slot of the pokemon that Claude wanted to switch to and executes the switch. This is to circumvent the get_team function giving a different order while in the battle menu and the pokemon switch menu, but causes a lot of unessary calls to the mgba-http API and might be improved in the future. Possibly rely only on pokemon name (accepting that duplicate pokemon will cause errors) to have Claude call switch function with name instead of slot.
+
 Write project instructions, to make it clear what the goals of the project are to Claude (either as project instructions or as part of MCP)
 
 Potentially do not expose delay in the press_buttons function to lessen the burden on Claude
+
+Player/pokemon status doesn't seem to work correctly. This is also affects downstream functions like attack, which check for change in status.
