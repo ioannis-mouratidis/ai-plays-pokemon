@@ -56,13 +56,132 @@ class BattleController:
             Current cursor position (1-4), or 1 if read fails
         """
         try:
-            cursor_address = int(self.memory.config["battle"]["move_cursor"], 16)
+            cursor_address = int(self.memory.config["battle"]["move_menu_cursor"], 16)
             cursor_value = self.client.read_memory(cursor_address, 1)[0]
             # Memory stores 0-3, convert to 1-4
             return cursor_value + 1 if 0 <= cursor_value <= 3 else 1
         except Exception as e:
-            print(f"Warning: Could not read cursor position: {e}", file=sys.stderr)
+            print(f"Warning: Could not read move cursor position: {e}", file=sys.stderr)
             return 1  # Default to position 1 on error
+
+    def get_battle_menu_cursor_position(self) -> int:
+        """
+        Read current battle menu cursor position from memory
+
+        Returns:
+            Current cursor position (1-4), or 1 if read fails
+            1 = FIGHT (top-left)
+            2 = BAG (top-right)
+            3 = POKEMON (bottom-left)
+            4 = RUN (bottom-right)
+        """
+        try:
+            cursor_address = int(self.memory.config["battle"]["battle_menu_cursor"], 16)
+            cursor_value = self.client.read_memory(cursor_address, 1)[0]
+            # Memory stores 0-3, convert to 1-4
+            return cursor_value + 1 if 0 <= cursor_value <= 3 else 1
+        except Exception as e:
+            print(f"Warning: Could not read battle menu cursor position: {e}", file=sys.stderr)
+            return 1  # Default to position 1 (FIGHT) on error
+
+    def navigate_to_battle_menu_option(self, current_pos: int, target_pos: int):
+        """
+        Navigate from current cursor position to target battle menu option
+
+        Args:
+            current_pos: Current cursor position (1-4)
+            target_pos: Target option position (1-4)
+
+        Battle menu grid:
+        [1: FIGHT]    [2: BAG]
+        [3: POKEMON]  [4: RUN]
+
+        Position mapping:
+        1 = (row 0, col 0) - FIGHT
+        2 = (row 0, col 1) - BAG
+        3 = (row 1, col 0) - POKEMON
+        4 = (row 1, col 1) - RUN
+        """
+        if current_pos == target_pos:
+            return  # Already at target
+
+        # Convert positions to (row, col)
+        def pos_to_coords(pos):
+            return ((pos - 1) // 2, (pos - 1) % 2)
+
+        current_row, current_col = pos_to_coords(current_pos)
+        target_row, target_col = pos_to_coords(target_pos)
+
+        # Navigate vertically first
+        if target_row > current_row:
+            self.client.press_button("DOWN")
+            time.sleep(0.1)
+        elif target_row < current_row:
+            self.client.press_button("UP")
+            time.sleep(0.1)
+
+        # Navigate horizontally
+        if target_col > current_col:
+            self.client.press_button("RIGHT")
+            time.sleep(0.1)
+        elif target_col < current_col:
+            self.client.press_button("LEFT")
+            time.sleep(0.1)
+
+    def select_battle_menu_option(self, option: str) -> bool:
+        """
+        Navigate to and select a battle menu option
+
+        Args:
+            option: One of "FIGHT", "BAG", "POKEMON", "RUN"
+
+        Returns:
+            True if successful, False on error
+        """
+        # Map option names to positions
+        option_map = {
+            "FIGHT": 1,
+            "BAG": 2,
+            "POKEMON": 3,
+            "RUN": 4
+        }
+
+        # Wait times after pressing A for each option
+        wait_times = {
+            "FIGHT": 0.3,    # Wait for move menu to appear
+            "BAG": 0.4,      # Wait for item menu
+            "POKEMON": 0.5,  # Wait for party menu to appear
+            "RUN": 0.2       # Wait for flee attempt
+        }
+
+        option_upper = option.upper()
+
+        # Validate option
+        if option_upper not in option_map:
+            print(f"Error: Invalid battle menu option '{option}'. Must be one of: FIGHT, BAG, POKEMON, RUN", file=sys.stderr)
+            return False
+
+        try:
+            # Get target position
+            target_pos = option_map[option_upper]
+
+            # Read current cursor position
+            current_pos = self.get_battle_menu_cursor_position()
+
+            # Navigate to target option
+            self.navigate_to_battle_menu_option(current_pos, target_pos)
+
+            # Press A to confirm selection
+            self.client.press_button("A")
+
+            # Wait appropriate time for submenu to appear
+            time.sleep(wait_times[option_upper])
+
+            return True
+
+        except Exception as e:
+            print(f"Error selecting battle menu option '{option}': {e}", file=sys.stderr)
+            return False
 
     def navigate_to_move(self, current_pos: int, target_pos: int):
         """
@@ -195,16 +314,11 @@ class BattleController:
             if not pre_state:
                 return {"success": False, "error": "Failed to capture battle state"}
 
-            # Navigate to move and select it
-            # Move layout in FireRed:
-            # [1] [2]
-            # [3] [4]
+            # Navigate to FIGHT option and select it
+            if not self.select_battle_menu_option("FIGHT"):
+                return {"success": False, "error": "Failed to select FIGHT option"}
 
-            # First, press A to confirm "FIGHT" option (usually default)
-            self.client.press_button("A")
-            time.sleep(0.3)  # Wait for move menu to appear
-
-            # Read current cursor position from memory
+            # Read current cursor position in move menu from memory
             current_cursor_pos = self.get_move_cursor_position()
 
             # Navigate from current position to target move
@@ -269,12 +383,9 @@ class BattleController:
             # Capture state before switch
             pre_state = self.capture_battle_state()
 
-            # Navigate to Pokemon menu
-            # From battle menu: DOWN to select "POKEMON", then A
-            self.client.press_button("DOWN")
-            time.sleep(0.2)
-            self.client.press_button("A")
-            time.sleep(0.5)  # Wait for Pokemon menu to open
+            # Navigate to POKEMON option and select it
+            if not self.select_battle_menu_option("POKEMON"):
+                return {"success": False, "error": "Failed to select POKEMON option"}
 
             # Navigate to target Pokemon (slots are vertical list)
             for _ in range(pokemon_slot - 1):
