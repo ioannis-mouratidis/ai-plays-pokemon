@@ -104,27 +104,6 @@ class MGBAClient:
 
         return bytes(result)
 
-    def write_memory(self, address: int, data: bytes) -> bool:
-        """
-        Write memory to emulator
-
-        Args:
-            address: Memory address
-            data: Bytes to write
-
-        Returns:
-            True if successful
-        """
-        for offset, byte_value in enumerate(data):
-            addr = address + offset
-            response = self.session.post(
-                f"{self.base_url}/Core/Write8",
-                params={"address": addr, "value": byte_value}
-            )
-            response.raise_for_status()
-
-        return True
-
     def get_screenshot(self) -> Image.Image:
         """
         Capture current screen as PIL Image
