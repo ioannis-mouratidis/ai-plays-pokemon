@@ -30,12 +30,15 @@ class BattleController:
             Dictionary with HP and status for player and enemy, or None if failed
         """
         try:
-            player = self.memory.get_party_pokemon(1)
+            # Get the actual active slot instead of hardcoding slot 1
+            active_slot = self.memory.get_active_party_slot()
+            player = self.memory.get_party_pokemon(active_slot)
             enemy_full = self.memory.read_pokemon_data(
                 int(self.memory.config["enemy_pokemon"][0], 16)
             )
 
             return {
+                "active_slot": active_slot,
                 "player_hp": player["current_hp"],
                 "player_max_hp": player["max_hp"],
                 "player_status": player["status"],

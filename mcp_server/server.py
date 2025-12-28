@@ -104,12 +104,15 @@ def get_current_pokemon_state() -> dict[str, Any]:
         return {"error": "Not currently in a battle"}
 
     try:
-        pokemon = memory_reader.get_party_pokemon(1)
+        # Get the actual active slot instead of hardcoding slot 1
+        active_slot = memory_reader.get_active_party_slot()
+        pokemon = memory_reader.get_party_pokemon(active_slot)
 
         if not pokemon["exists"]:
             return {"error": "No active Pokemon found"}
 
         return {
+            "active_slot": active_slot,
             "species": pokemon["species"],
             "level": pokemon["level"],
             "current_hp": pokemon["current_hp"],
@@ -175,6 +178,7 @@ def get_team_state() -> dict[str, Any]:
     - Current/max HP
     - Status condition
     - Whether they can battle (not fainted)
+    - Which slot is currently active in battle
 
     Returns:
         Dictionary with party array, or error if not in battle
@@ -186,10 +190,12 @@ def get_team_state() -> dict[str, Any]:
 
     try:
         party = memory_reader.get_full_party()
+        active_slot = memory_reader.get_active_party_slot()
 
         return {
             "party": party,
-            "party_size": len(party)
+            "party_size": len(party),
+            "active_slot": active_slot
         }
 
     except Exception as e:
@@ -205,7 +211,6 @@ def get_battle_status() -> dict[str, Any]:
         Dictionary with:
         - in_battle: Whether currently in a battle
         - battle_type: "wild", "trainer", or "none"
-        - turn_number: Current turn count
         - can_flee: Whether fleeing is possible
         - enemy_party_count: Number of Pokemon in enemy's party
         - enemy_alive_count: Number of enemy Pokemon that can still battle

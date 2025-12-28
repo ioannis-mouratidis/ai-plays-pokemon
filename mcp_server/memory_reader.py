@@ -5,6 +5,7 @@ Parses Pokemon data structures from raw memory
 
 import json
 import os
+import sys
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 
@@ -445,3 +446,33 @@ class MemoryReader:
                     **pokemon
                 })
         return party
+
+    def get_active_party_slot(self) -> int:
+        """
+        Get the currently active party slot in battle (1-6).
+
+        This reads from the battle state to determine which Pokemon from your
+        party (slots 1-6) is currently active in battle. This is important
+        because the active Pokemon may not be slot 1 if you've switched.
+
+        Returns:
+            Party slot number (1-6), or 1 if read fails or not in battle
+        """
+        try:
+            active_slot_address = self._hex_to_int(
+                self.config["battle"]["active_party_slot"]
+            )
+
+            # Read 1 byte (0-indexed value 0-5)
+            slot_value = self.client.read_memory(active_slot_address, 1)[0]
+
+            # Convert to 1-indexed (1-6) and validate
+            if 0 <= slot_value <= 5:
+                return slot_value + 1
+            else:
+                # Invalid value, default to slot 1
+                return 1
+
+        except Exception as e:
+            print(f"Warning: Could not read active party slot: {e}", file=sys.stderr)
+            return 1  # Fallback to slot 1
