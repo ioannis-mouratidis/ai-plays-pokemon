@@ -1,8 +1,9 @@
 {
-  "version": "FireRed_v1.0_US",
+  "version": "FireRed_v1.1_US",
   "battle": {
     "flags": "0x02022B4B",
-    "type": "0x02022B4C"
+    "type": "0x02022B4C",
+    "move_cursor": "0x02023D48"
   },
   "enemy_pokemon": [
     "0x0202402C",

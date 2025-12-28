@@ -48,6 +48,66 @@ class BattleController:
             print(f"Error capturing battle state: {e}", file=sys.stderr)
             return None
 
+    def get_move_cursor_position(self) -> int:
+        """
+        Read current move cursor position from memory
+
+        Returns:
+            Current cursor position (1-4), or 1 if read fails
+        """
+        try:
+            cursor_address = int(self.memory.config["battle"]["move_cursor"], 16)
+            cursor_value = self.client.read_memory(cursor_address, 1)[0]
+            # Memory stores 0-3, convert to 1-4
+            return cursor_value + 1 if 0 <= cursor_value <= 3 else 1
+        except Exception as e:
+            print(f"Warning: Could not read cursor position: {e}", file=sys.stderr)
+            return 1  # Default to position 1 on error
+
+    def navigate_to_move(self, current_pos: int, target_pos: int):
+        """
+        Navigate from current cursor position to target move
+
+        Args:
+            current_pos: Current cursor position (1-4)
+            target_pos: Target move index (1-4)
+
+        Move grid:
+        [1] [2]
+        [3] [4]
+
+        Position mapping:
+        1 = (row 0, col 0)
+        2 = (row 0, col 1)
+        3 = (row 1, col 0)
+        4 = (row 1, col 1)
+        """
+        if current_pos == target_pos:
+            return  # Already at target
+
+        # Convert positions to (row, col)
+        def pos_to_coords(pos):
+            return ((pos - 1) // 2, (pos - 1) % 2)
+
+        current_row, current_col = pos_to_coords(current_pos)
+        target_row, target_col = pos_to_coords(target_pos)
+
+        # Navigate vertically first
+        if target_row > current_row:
+            self.client.press_button("DOWN")
+            time.sleep(0.1)
+        elif target_row < current_row:
+            self.client.press_button("UP")
+            time.sleep(0.1)
+
+        # Navigate horizontally
+        if target_col > current_col:
+            self.client.press_button("RIGHT")
+            time.sleep(0.1)
+        elif target_col < current_col:
+            self.client.press_button("LEFT")
+            time.sleep(0.1)
+
     def wait_for_turn_completion(self, pre_state: Dict[str, Any], max_wait_seconds: int = 10) -> bool:
         """
         Wait for turn to complete by detecting HP changes
@@ -142,26 +202,13 @@ class BattleController:
 
             # First, press A to confirm "FIGHT" option (usually default)
             self.client.press_button("A")
-            time.sleep(0.3)  # Wait for menu to appear
+            time.sleep(0.3)  # Wait for move menu to appear
 
-            # Navigate to move
-            if move_index == 1:
-                # Top-left (default position)
-                pass
-            elif move_index == 2:
-                # Top-right
-                self.client.press_button("RIGHT")
-                time.sleep(0.1)
-            elif move_index == 3:
-                # Bottom-left
-                self.client.press_button("DOWN")
-                time.sleep(0.1)
-            elif move_index == 4:
-                # Bottom-right
-                self.client.press_button("DOWN")
-                time.sleep(0.1)
-                self.client.press_button("RIGHT")
-                time.sleep(0.1)
+            # Read current cursor position from memory
+            current_cursor_pos = self.get_move_cursor_position()
+
+            # Navigate from current position to target move
+            self.navigate_to_move(current_cursor_pos, move_index)
 
             # Confirm move selection
             self.client.press_button("A")
