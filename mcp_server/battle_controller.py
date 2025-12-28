@@ -3,6 +3,7 @@ Battle controller for Pokemon FireRed
 Executes battle actions and parses turn results
 """
 
+import sys
 import time
 from typing import Dict, Any, List
 
@@ -26,7 +27,7 @@ class BattleController:
         Capture current battle state (before action)
 
         Returns:
-            Dictionary with HP and status for player and enemy
+            Dictionary with HP and status for player and enemy, or None if failed
         """
         try:
             player = self.memory.get_party_pokemon(1)
@@ -44,8 +45,8 @@ class BattleController:
                 "timestamp": time.time()
             }
         except Exception as e:
-            print(f"Error capturing battle state: {e}")
-            return {}
+            print(f"Error capturing battle state: {e}", file=sys.stderr)
+            return None
 
     def wait_for_turn_completion(self, pre_state: Dict[str, Any], max_wait_seconds: int = 10) -> bool:
         """
