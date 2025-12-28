@@ -40,6 +40,7 @@ roms/*.gb
 roms/*.gbc
 roms/*.zip
 roms/*.sav
+roms/*.ss*
 
 # Emulator files (user must download)
 emulator/mGBA.exe
