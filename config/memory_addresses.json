@@ -3,7 +3,7 @@
   "battle": {
     "flags": "0x02022B4B",
     "type": "0x02022B4C",
-    "move_cursor": "0x02023D48"
+    "move_cursor": "0x02023FFC"
   },
   "enemy_pokemon": [
     "0x0202402C",
