@@ -168,20 +168,6 @@ class MGBAClient:
         img.save(buffer, format="PNG")
         return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-    def advance_frames(self, num_frames: int) -> bool:
-        """
-        Advance emulator by specified number of frames without input
-
-        Args:
-            num_frames: Number of frames to advance
-
-        Returns:
-            True if successful
-        """
-        # Wait equivalent time (mGBA will auto-run)
-        time.sleep(num_frames * 0.0167)
-        return True
-
     def read_byte(self, address: int) -> int:
         """Read single byte from memory"""
         response = self.session.get(
