@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AI-controlled Pokemon FireRed battle system using MCP (Model Context Protocol). Claude Desktop connects via MCP server to control Pokemon battles through mGBA emulator + mGBA-http HTTP API. User maintains manual control for navigation; AI only controls during battles.
+AI-controlled Pokemon FireRed system using MCP (Model Context Protocol). AI assistants connect via MCP server to play Pokemon FireRed through mGBA emulator + mGBA-http HTTP API. The system provides high-level battle control functions and low-level navigation via screenshots and button presses, enabling autonomous gameplay.
 
-**Architecture chain**: Claude Desktop → MCP Server (Python) → HTTP REST API → mGBA-http → mGBA Lua script → mGBA emulator
+**Architecture chain**: AI Assistant (e.g., Claude Desktop) → MCP Server (Python) → HTTP REST API → mGBA-http → mGBA Lua script → mGBA emulator
 
 ## Development Commands
 
@@ -47,18 +47,21 @@ python -c "from mcp_server.mgba_client import create_client; from mcp_server.mem
 
 ## Architecture & Data Flow
 
-### MCP Server Tools (7 tools exposed to Claude)
+### MCP Server Tools (8 tools exposed to AI assistants)
 
 **Query Tools** (read-only):
-- `get_screenshot()` - Captures screen via POST to `/core/screenshot?path=<path>`, saves to `screenshots/`, returns base64 PNG
+- `get_screenshot()` - Captures screen via POST to `/core/screenshot?path=<path>`, saves to `screenshots/`, returns base64 PNG (240x160 pixels)
 - `get_current_pokemon_state()` - Reads party Pokemon #1 from memory address 0x02024284
 - `get_enemy_pokemon_state()` - Reads enemy Pokemon #1 from 0x0202402C, **filters to visible info only** (species, level, HP bar color, status)
 - `get_team_state()` - Reads all 6 party Pokemon (addresses 0x02024284 through 0x02024478, 100 bytes each)
 - `get_battle_status()` - Reads battle flags at 0x02022B4B and type at 0x02022B4C
 
-**Command Tools** (actions):
+**Battle Command Tools** (high-level actions):
 - `use_attack(move_index)` - Navigates menu, presses buttons, waits for turn completion via HP change detection
 - `switch_pokemon(slot)` - Opens Pokemon menu, selects target, executes switch
+
+**Navigation Tool** (low-level control):
+- `press_buttons(buttons, delay_ms)` - Sends button sequences for overworld navigation, menu interaction, etc.
 
 ### Component Responsibilities
 
@@ -89,7 +92,7 @@ python -c "from mcp_server.mgba_client import create_client; from mcp_server.mem
 - Returns synchronous turn results (damage dealt/received, faint status)
 
 **Server** ([server.py](mcp_server/server.py)):
-- FastMCP server with 7 tools
+- FastMCP server with 8 tools (5 query, 2 battle, 1 navigation)
 - Lazy initialization - connects to mGBA-http on first tool call
 - Global instances: client, memory_reader, battle_detector, battle_controller
 
@@ -214,24 +217,27 @@ Verify startup sequence:
 ## Design Constraints
 
 ### What This Does
-- Battle control only (AI makes decisions during active battles)
+- Autonomous gameplay via screenshots and button presses
+- High-level battle control (AI makes strategic decisions)
 - Single Pokemon battles (1v1)
-- Basic attacks and switching
 - Synchronous turn-based actions with results
+- Overworld navigation (low-level via button sequences)
 
 ### What This Does NOT Do
-- Overworld navigation (user does this manually)
 - Item usage from bag (not implemented)
 - Double battles (not supported)
 - Battle text parsing/OCR (uses state diffing instead)
 - Auto-save management
 - Multi-turn move handling (Fly, Dig, Hyper Beam recharge)
+- Pathfinding (AI must navigate manually via screenshots)
 
 ### Intentional Limitations
-- ~20-100ms HTTP latency (acceptable for turn-based battles)
+- ~20-100ms HTTP latency (acceptable for turn-based gameplay)
 - Simplified species/move name dictionaries (would need full Gen III database for production)
 - Enemy data filtered to visible info only (realistic competitive gameplay)
 - Screenshots saved to disk (mGBA-http limitation, not streaming)
+- Low screenshot resolution (240x160 pixels - Game Boy Advance native resolution)
+- Navigation requires AI to analyze screenshots and decide button sequences (no pathfinding)
 
 ## When Modifying This Codebase
 
@@ -242,9 +248,10 @@ Verify startup sequence:
 
 ### Adding New MCP Tools
 1. Define tool in [server.py](mcp_server/server.py) with `@mcp.tool()` decorator
-2. Call `initialize_components()` first
+2. Call `initialize_components()` first if tool needs emulator connection
 3. Check battle state if tool requires active battle
 4. Return dict with structured data, include `"error"` key on failure
+5. For low-level control, use `press_buttons()` as a model (validates buttons, sends to client)
 
 ### Modifying Battle Actions
 - Update button sequences in [battle_controller.py](mcp_server/battle_controller.py)

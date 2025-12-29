@@ -1,10 +1,10 @@
 # Project Status
 
-**Last Updated:** 2025-12-27
+**Last Updated:** 2025-12-29
 
-## Implementation Status: Phase 1 Complete ✅
+## Implementation Status: Core Features Complete ✅
 
-The core MCP server implementation is **complete and ready for testing**.
+The core MCP server implementation with both battle controls and navigation capabilities is **complete and ready for testing**.
 
 ## What's Implemented
 
@@ -38,7 +38,7 @@ The core MCP server implementation is **complete and ready for testing**.
    - Synchronous turn results
 
 5. **MCP Server ([server.py](mcp_server/server.py))**
-   - 6 fully implemented tools
+   - 8 fully implemented tools (5 query, 2 battle, 1 navigation)
    - Connection initialization
    - Error handling
    - Proper MCP protocol compliance
@@ -83,18 +83,18 @@ You still need to download:
 - [ ] Integration tests
 - [ ] End-to-end test with Claude Desktop
 
-### 🚀 Future Enhancements (Phase 3+)
+### 🚀 Future Enhancements
 
+- Improved agent harness for autonomous gameplay
+- Integration with other Pokemon MCPs for type effectiveness and move data
+- Pathfinding algorithms for navigation to on-screen points
 - Item usage from bag
 - Battle text parsing/OCR
-- Type effectiveness calculator
-- Strategic AI layer
 - Double battle support
-- Web UI for monitoring
 
 ## MCP Tools Status
 
-All 6 tools are implemented and ready:
+All 8 tools are implemented and ready:
 
 ### Query Tools ✅
 - ✅ `get_screenshot()` - Returns base64 PNG (240x160 pixels)
@@ -103,9 +103,12 @@ All 6 tools are implemented and ready:
 - ✅ `get_team_state()` - Full party
 - ✅ `get_battle_status()` - Battle metadata
 
-### Command Tools ✅
+### Battle Command Tools (High-Level) ✅
 - ✅ `use_attack(move_index)` - Execute attack with turn results
 - ✅ `switch_pokemon(slot)` - Switch Pokemon
+
+### Navigation Tool (Low-Level) ✅
+- ✅ `press_buttons(buttons, delay_ms)` - Send button sequences for overworld navigation
 
 ## Dependencies Installed ✅
 
@@ -183,25 +186,27 @@ AI plays Pokemon/
    - Restart Claude
    - Test tools in conversation
 
-## Timeline
+## Development Timeline
 
-- **Phase 1** (Setup & Core): ✅ COMPLETE (Today)
-- **Phase 2** (Testing): ⏳ PENDING (1-2 days)
-  - Download emulator files
-  - End-to-end testing
-  - Bug fixes
-- **Phase 3** (Enhancements): 📅 FUTURE
-  - Unit tests
-  - Advanced features
-  - Documentation polish
+- **Core Features**: ✅ COMPLETE
+  - MCP server with 8 tools
+  - Battle control system
+  - Navigation via screenshots and button presses
+  - End-to-end testing successful
+
+- **Enhancements**: 📅 ONGOING
+  - Improved agent harness
+  - Pokemon knowledge integration
+  - Pathfinding algorithms
+  - Item usage system
 
 ## Known Limitations
 
 ### By Design
-- Battle screen only (no overworld navigation)
 - Single Pokemon battles (no doubles)
 - Enemy data filtered to visible info only
-- No item usage (Phase 1)
+- No item usage
+- Overworld navigation requires screenshot analysis and manual button presses (lower-level than battle controls)
 
 ### Technical
 - ~20-100ms latency via HTTP
@@ -214,15 +219,16 @@ AI plays Pokemon/
 The project is ready when:
 
 - [x] MCP server code complete
-- [x] All 6 tools implemented
+- [x] All 8 tools implemented
 - [x] Documentation complete
-- [ ] mGBA files downloaded
-- [ ] ROM added
-- [ ] End-to-end test successful
-- [ ] Claude Desktop integration works
-- [ ] AI can win a battle autonomously
+- [x] mGBA files downloaded
+- [x] ROM added
+- [x] End-to-end test successful
+- [x] Claude Desktop integration works
+- [x] AI can win a battle autonomously
+- [x] AI can navigate overworld via screenshots
 
-**Current Progress: 60%** (Core complete, testing pending)
+**Current Progress: 95%** (Core complete, enhancement phase)
 
 ## Help
 

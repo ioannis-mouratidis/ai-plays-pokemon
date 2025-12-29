@@ -1,8 +1,8 @@
 # Quick Start Guide
 
-## What We've Built
+This projects aims to build a complete MCP server designed to evaluate agentic capabilities of vision-enabled LLMs by allowing them to play Pokemon FireRed autonomously.
 
-You now have a complete MCP server that allows Claude AI to control Pokemon FireRed battles!
+**The Approach:** Rather than relying solely on screenshots (where LLMs are weaker), this system provides as much information and capability as possible in text form (where LLMs excel), while maintaining fairness (the agent has no more information than a human player would). The agent makes every decision, but an agent harness abstracts away the need to plan every single button press.
 
 ## What's Done ✅
 
@@ -12,7 +12,7 @@ You now have a complete MCP server that allows Claude AI to control Pokemon Fire
 - ✅ Memory reader for Pokemon data (memory_reader.py)
 - ✅ Battle state detector (battle_detector.py)
 - ✅ Battle action controller (battle_controller.py)
-- ✅ Complete MCP server with 6 tools (server.py)
+- ✅ Complete MCP server with 8 tools (server.py)
 - ✅ Configuration files
 - ✅ Documentation
 
@@ -85,34 +85,44 @@ Add to `%APPDATA%\Claude\claude_desktop_config.json`:
 
 Restart Claude Desktop.
 
-### 4. Test with Claude
+### 4. Test with Your AI Assistant
 
-1. Start a new battle in Pokemon FireRed manually
-2. In Claude Desktop, ask: "Check my current Pokemon's status"
-3. Claude will use the `get_current_pokemon_state` tool
+**Option A: Autonomous Play**
+1. Load your Pokemon FireRed save game
+2. Ask: "Please play the game and navigate to the nearest Pokemon Center"
+3. The AI will capture screenshots, navigate using button presses, and handle any battles
+4. You can intervene at any time by pressing keys directly in the emulator
+
+**Option B: Battle Testing**
+1. Navigate to a battle manually
+2. Ask: "Check my current Pokemon's status"
+3. The AI will use the `get_current_pokemon_state` tool
 4. Ask: "What move should I use against this enemy?"
-5. Claude will analyze and can execute moves
+5. The AI will analyze and execute moves using high-level battle functions
 
 ## Available Tools
 
-Claude has access to:
+Your AI assistant has access to:
 
 ### Query Tools
-- `get_screenshot()` - See the current game screen
+- `get_screenshot()` - See the current game screen (240x160 PNG)
 - `get_current_pokemon_state()` - Your Pokemon's full stats
 - `get_enemy_pokemon_state()` - Enemy's visible info only
 - `get_team_state()` - Your full party
 - `get_battle_status()` - Battle active, type, can flee
 
-### Action Tools
-- `use_attack(1-4)` - Use a move
+### Battle Action Tools (High-Level)
+- `use_attack(1-4)` - Use a move, returns turn results
 - `switch_pokemon(1-6)` - Switch Pokemon
+
+### Navigation Tool (Low-Level)
+- `press_buttons(buttons, delay_ms)` - Send button sequences for overworld navigation
 
 ## File Structure
 
 ```
 mcp_server/
-├── server.py              # Main MCP server (6 tools defined)
+├── server.py              # Main MCP server (8 tools defined)
 ├── mgba_client.py         # HTTP wrapper for mGBA-http API
 ├── memory_reader.py       # Parses Pokemon data from RAM
 ├── battle_detector.py     # Detects when battles are active
@@ -138,10 +148,7 @@ roms/                     # [YOU NEED TO ADD ROM HERE]
 - Ensure Lua script is loaded
 - Ensure mGBA-http is running
 - Check http://localhost:5000 in browser
-
-**"Not currently in a battle"**
-- Navigate to a battle manually first
-- Let Claude know you're in a battle
+- **Important:** Verify that the port in the Lua script (default 8008) matches the port mGBA-http is connecting to
 
 **"Failed to read Pokemon state"**
 - Verify ROM is Pokemon FireRed (not LeafGreen or hacks)
@@ -151,35 +158,10 @@ roms/                     # [YOU NEED TO ADD ROM HERE]
 
 1. Download the required emulator files
 2. Test the complete system end-to-end
-3. Try battling with Claude!
-
-## Example Claude Conversation
-
-```
-You: I'm in a battle with a wild Pidgey. What should I do?
-
-Claude: Let me check the current battle state.
-[Calls get_current_pokemon_state and get_enemy_pokemon_state]
-
-Claude: You have a Charizard at 98/120 HP against a level 5 Pidgey (green HP bar).
-Charizard's moves:
-1. Flamethrower
-2. Dragon Claw
-3. Air Slash
-4. Earthquake
-
-I recommend using Flamethrower (move 1) - it's super effective against Flying types.
-Shall I execute it?
-
-You: Yes
-
-Claude: [Calls use_attack(1)]
-Claude: Charizard used Flamethrower! Dealt 87 damage. Enemy Pidgey fainted!
-The battle is over - you won!
-```
+3. Try autonomous gameplay or battle testing with your AI assistant!
 
 ## Enjoy!
 
-You now have a working AI-controlled Pokemon battle system. Have fun battling with Claude!
+You now have a working testbed for evaluating LLM agentic capabilities through autonomous Pokemon gameplay!
 
 For detailed technical documentation, see [README.md](README.md) and [setup_guide.md](setup_guide.md).

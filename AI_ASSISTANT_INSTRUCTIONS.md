@@ -1,52 +1,57 @@
-# Pokemon FireRed Battle AI Assistant Instructions
+# Pokemon FireRed AI Assistant Instructions
 
 ## Purpose
 
-This is an experiment to test AI assistant performance in Pokemon battles using an MCP server.
+This is an experiment to test AI assistant performance in autonomous Pokemon FireRed gameplay using an MCP server.
 
-**Goal:** Win battles efficiently using strategic decision-making.
+**Goal:** Play Pokemon FireRed autonomously, making strategic decisions for both navigation and battles.
 
-**You control:** Battle decisions only (attacks, switches)
+**You control:** Everything - overworld navigation and battle decisions
 
-**User controls:** Overworld navigation
+**User controls:** Can intervene at any time by pressing keys in the emulator
 
 ## How It Works
 
-**Architecture:** Claude Desktop → MCP Server → mGBA Emulator → Pokemon FireRed
+**Architecture:** AI Assistant (e.g., Claude Desktop) → MCP Server → mGBA Emulator → Pokemon FireRed
 
-- **When battles start:** You take control
-- **When battles end:** Return control to user
-- **All actions are synchronous:** Wait for turn completion before next action
+- **Gameplay Modes:**
+  - Overworld: Navigate using screenshots and button presses
+  - Battles: Use high-level functions for strategic combat
+- **All actions are synchronous:** Wait for completion before next action
+- **User can intervene:** Manual control via emulator keyboard at any time
 
 ## Understanding Game State
 
-### Preferred Method: Use MCP Functions (Most Efficient)
+### For Overworld Navigation
+
+- `get_screenshot()` - Returns 240x160 pixel PNG image
+- **Use for:** Navigating routes, towns, buildings, menus
+- **Resolution:** Low (Game Boy Advance native), but sufficient for navigation
+- **Frequency:** Capture regularly to understand your location and surroundings
+
+### For Battle State (More Efficient)
 
 - `get_current_pokemon_state()` - Your active Pokemon's full stats (species, level, HP, moves, PP)
 - `get_enemy_pokemon_state()` - Enemy visible info only (species, level, HP bar color, approximate HP%)
 - `get_team_state()` - All party Pokemon including fainted (check can_battle field)
 - `get_battle_status()` - Battle metadata (wild/trainer, can_flee, enemy party count)
 
-### Fallback Method: Screenshots (Less Efficient)
-
-Use when MCP data insufficient:
-
-- `get_screenshot()` - Returns 240x160 pixel PNG image
-- **Use for:** Menu navigation, non-battle screens, visual confirmation
-- **Note:** Low resolution, prefer MCP functions when possible
+**Note:** In battles, prefer specific MCP functions over screenshots for efficiency
 
 ## Taking Actions
 
-### Battle Commands
+### Navigation (Overworld)
+
+- `press_buttons(buttons, delay_ms)` - Send button sequences for movement and menu interaction
+- **Valid buttons:** A, B, Start, Select, L, R, Up, Down, Left, Right
+- **Use for:** Walking, running, interacting with NPCs, opening menus, navigating dialogs
+- **Strategy:** Combine with screenshots to understand where you are and where to go
+
+### Battle Commands (High-Level)
 
 - `use_attack(move_index)` - Execute attack (1-4), returns damage dealt/received, faint status
 - `switch_pokemon(pokemon_slot)` - Switch to Pokemon (1-6), enemy gets free turn
-
-### Low-Level Control
-
-- `press_buttons(buttons, delay_ms)` - Button sequences for menus/navigation
-- **Valid buttons:** A, B, Start, Select, L, R, Up, Down, Left, Right
-- **Use sparingly:** Prefer high-level battle commands when available
+- **Advantage:** Abstracted functions handle menu navigation and turn completion automatically
 
 ## MCP Tool Reference
 
@@ -55,7 +60,7 @@ Use when MCP data insufficient:
 #### 1. get_screenshot()
 
 - **Returns:** Image (240x160 PNG)
-- **Use:** Visual confirmation, non-battle screens
+- **Use:** Overworld navigation, visual confirmation, menu navigation, dialog reading
 
 #### 2. get_current_pokemon_state()
 
@@ -79,23 +84,28 @@ Use when MCP data insufficient:
 - **Returns:** in_battle, battle_type (wild/trainer), can_flee, enemy_party_count, enemy_alive_count
 - **Use:** Battle context and metadata
 
-### Command Tools (3)
+### Battle Command Tools (2)
 
 #### 6. use_attack(move_index: 1-4)
 
 - **Returns:** success, damage_dealt, damage_received, player_hp_remaining, enemy_hp_remaining, player_fainted, enemy_fainted, error
-- **Use:** Execute attacks, get turn results
+- **Use:** Execute attacks during battles, get turn results
+- **Advantage:** Handles menu navigation automatically
 
 #### 7. switch_pokemon(pokemon_slot: 1-6)
 
 - **Returns:** success, switched_to_pokemon, damage_received, player_hp_remaining, error
 - **Note:** Enemy gets free turn after switch
 - **Use:** Switch Pokemon during battle
+- **Advantage:** Handles menu navigation automatically
+
+### Navigation Tool (1)
 
 #### 8. press_buttons(buttons: list, delay_ms: int = 100)
 
 - **Returns:** success, buttons_pressed, button_count, total_delay_ms, error
-- **Use:** Low-level menu navigation, fallback control
+- **Use:** Overworld navigation, menu interaction, dialog progression, NPC interaction
+- **Valid buttons:** A, B, Start, Select, L, R, Up, Down, Left, Right
 
 ## Important Notes
 
@@ -105,13 +115,26 @@ Use when MCP data insufficient:
 - All actions wait for completion before returning
 - Type advantages, status effects, and strategic decisions rely on your Pokemon knowledge
 
-## Example Battle Workflow
+## Example Autonomous Gameplay Workflow
 
-1. Battle starts (user navigates to wild Pokemon/trainer)
-2. Use `get_current_pokemon_state()` to check your Pokemon
-3. Use `get_enemy_pokemon_state()` to assess opponent
-4. Use `get_team_state()` to view full party if considering switch
-5. Decide: `use_attack(move_index)` or `switch_pokemon(slot)`
-6. Action executes, turn completes, results returned
-7. Repeat until battle ends (player_fainted or enemy_fainted = true)
-8. Return control to user for navigation
+### Navigation Phase
+1. Use `get_screenshot()` to see current location
+2. Identify destination (e.g., Pokemon Center, next route, gym)
+3. Use `press_buttons()` to move in that direction
+4. Repeat screenshot → navigate until destination reached
+
+### Battle Phase (When Encountered)
+1. Battle starts (detected automatically or via screenshot)
+2. Use `get_battle_status()` to confirm battle state and type (wild/trainer)
+3. Use `get_current_pokemon_state()` to check your Pokemon
+4. Use `get_enemy_pokemon_state()` to assess opponent
+5. Use `get_team_state()` to view full party if considering switch
+6. Decide: `use_attack(move_index)` or `switch_pokemon(slot)`
+7. Action executes, turn completes, results returned
+8. Repeat steps 3-7 until battle ends (player_fainted or enemy_fainted = true)
+9. Return to navigation phase
+
+### Dialog/Menu Phase
+1. Use `get_screenshot()` to see dialog or menu
+2. Use `press_buttons()` to progress dialog or select menu options
+3. Continue based on goal (e.g., talk to NPC, heal at Pokemon Center, buy items)

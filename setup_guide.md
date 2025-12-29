@@ -1,6 +1,6 @@
-# Setup Guide - AI Pokemon Battle System
+# Setup Guide - AI Pokemon FireRed System
 
-This guide will walk you through setting up the complete system.
+This guide will walk you through setting up the complete system for autonomous Pokemon gameplay.
 
 ## Prerequisites
 
@@ -142,6 +142,7 @@ Should return a JSON response with memory data.
 ### mGBA-http won't connect
 - Ensure mGBA is running FIRST
 - Ensure Lua script is loaded in mGBA
+- **Important:** Verify that the port in the Lua script (default 8008) matches the port mGBA-http is connecting to
 - Check firewall isn't blocking port 8008
 - Try restarting both mGBA and mGBA-http
 
@@ -160,9 +161,9 @@ Should return a JSON response with memory data.
 
 Once everything is working:
 
-1. Navigate Pokemon to a battle manually
-2. Proceed to [Phase 2: Build MCP Server Components](README.md)
-3. Start implementing the MCP server tools
+1. Configure your AI assistant to connect to the MCP server (see [README.md](README.md))
+2. Test autonomous gameplay or battle testing
+3. See [AI_ASSISTANT_INSTRUCTIONS.md](AI_ASSISTANT_INSTRUCTIONS.md) for guidance on AI agent usage
 
 ## Manual Testing Checklist
 
@@ -173,6 +174,7 @@ Once everything is working:
 - [ ] HTTP API responds to GET requests
 - [ ] Button presses work via API
 - [ ] Memory reading returns valid data
-- [ ] Can navigate to a battle manually
+- [ ] Screenshots can be captured via API
+- [ ] MCP server connects to mGBA-http
 
-You're ready to build the MCP server!
+You're ready to use the MCP server with your AI assistant!

@@ -1,11 +1,15 @@
-# AI-Controlled Pokemon FireRed Battle System
+# AI-Controlled Pokemon FireRed System
 
-An MCP server that allows Claude AI to play Pokemon FireRed battles while you maintain manual control for navigation.
+An MCP server designed to evaluate agentic capabilities of vision-enabled LLMs by allowing them to play Pokemon FireRed autonomously.
+
+## Project Goal
+
+This project provides an MCP layer that allows LLM-based agents with vision capabilities to play Pokemon FireRed, serving as a testbed for evaluating agentic performance. Rather than relying solely on screenshots (where LLMs are weaker), the system provides as much information and capability as possible in text form (where LLMs excel), while maintaining fairness (the agent has no more information than a human player would). The agent makes every decision, but an agent harness abstracts away the need to plan every single button press, allowing it to focus on strategic gameplay.
 
 ## Architecture
 
 ```
-Claude Desktop → MCP Server (Python) → HTTP API → mGBA-http → mGBA GUI
+AI Assistant (e.g., Claude Desktop) → MCP Server (Python) → HTTP API → mGBA-http → mGBA GUI
 ```
 
 ## Quick Start
@@ -68,24 +72,32 @@ Add to `%APPDATA%\Claude\claude_desktop_config.json`:
 
 ### 4. Usage
 
-1. Manually navigate your Pokemon to a battle
-2. Ask Claude: "Check my current Pokemon's status"
-3. Ask Claude: "What move should I use?"
-4. Claude will analyze and execute battle commands
-5. Take manual control at any time by pressing keyboard keys
+Ask your AI assistant to play the game autonomously. The AI can:
+- Navigate the overworld by capturing screenshots and sending button presses
+- Use specialized high-level functions to control battles efficiently
+- Make strategic decisions about Pokemon, moves, and party management
+
+**Example:** "Please play the game and progress through the Viridian Forest. Use screenshots to navigate and battle any trainers you encounter."
+
+The AI will use `get_screenshot()` and `press_buttons()` for navigation, then switch to abstracted battle functions like `use_attack()` and `switch_pokemon()` during combat for easier gameplay.
+
+While the goal is autonomous play, you can intervene at any time by taking manual control of the emulator using keyboard inputs.
 
 ## MCP Tools Available
 
 ### Query Tools
-- `get_screenshot()` - Capture current game screen
+- `get_screenshot()` - Capture current game screen (240x160 PNG)
 - `get_current_pokemon_state()` - Your active Pokemon's stats
 - `get_enemy_pokemon_state()` - Enemy's visible info (realistic gameplay)
 - `get_team_state()` - Your full party status
 - `get_battle_status()` - Battle active, type, can flee
 
-### Command Tools
-- `use_attack(move_index)` - Use move 1-4
+### Battle Command Tools (High-Level)
+- `use_attack(move_index)` - Use move 1-4, returns turn results
 - `switch_pokemon(slot)` - Switch to Pokemon 1-6
+
+### Navigation Tool (Low-Level)
+- `press_buttons(buttons, delay_ms)` - Send button sequences for overworld navigation
 
 ## Project Structure
 
@@ -131,19 +143,19 @@ python -m mcp dev mcp_server/server.py
 
 ## Limitations
 
-- Battle screen only (manual overworld navigation)
-- Single Pokemon battles (no double battles yet)
-- No item usage from bag (Phase 1)
+- Single Pokemon battles (no double battles)
+- No item usage from bag
 - Enemy data limited to visible info (realistic gameplay)
+- Overworld navigation requires screenshot analysis and manual button presses (lower-level than battle controls)
 
 ## Future Enhancements
 
+- Improved agent harness for autonomous gameplay
+- Integration with other Pokemon MCPs for type effectiveness and move data
+- Pathfinding algorithms for navigation to on-screen points
+- Item usage from bag
 - Battle text OCR
-- Type effectiveness calculator
-- Strategic AI layer
-- Multi-battle campaigns
-- Web UI for live streaming
-- Battle replay system
+- Double battle support
 
 ## License
 
