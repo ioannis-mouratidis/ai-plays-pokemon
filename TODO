@@ -53,3 +53,5 @@ Potentially do not expose delay in the press_buttons function to lessen the burd
 Player/pokemon status doesn't seem to work correctly. This is also affects downstream functions like attack, which check for change in status.
 
 Get enemy pokemon state returns an error when it's not the first enemy Pokemon. They are probably stored in a different memory location. Enemy_alive_count from get_battle_status might also be incorrect.
+
+Update README to reference other similar projects.
