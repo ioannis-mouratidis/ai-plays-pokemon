@@ -156,17 +156,6 @@ class MGBAClient:
         except Exception as e:
             raise RuntimeError(f"Failed to read screenshot file: {e}")
 
-    def get_screenshot_base64(self) -> str:
-        """
-        Get screenshot as base64-encoded PNG string
-
-        Returns:
-            Base64 string
-        """
-        img = self.get_screenshot()
-        buffer = BytesIO()
-        img.save(buffer, format="PNG")
-        return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
     def read_byte(self, address: int) -> int:
         """Read single byte from memory"""
