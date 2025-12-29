@@ -35,15 +35,8 @@ env/
 NUL
 
 # ROM files (do not distribute)
-roms/*.gba
-roms/*.gb
-roms/*.gbc
-roms/*.zip
-roms/*.sav
-roms/*.ss*
-roms/*.cheats
-roms/*.OLD
-roms/saves/
+roms/
+!roms/.gitkeep
 
 # Emulator files (user must download)
 emulator/mGBA.exe
@@ -81,6 +74,9 @@ screenshots/*.bmp
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Tests
+tests/
 
 # Secrets
 .env
