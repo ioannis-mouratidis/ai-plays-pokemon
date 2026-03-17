@@ -21,6 +21,7 @@ wheels/
 *.egg
 
 # Virtual environments
+.venv/
 venv/
 ENV/
 env/
@@ -40,9 +41,10 @@ roms/
 
 # Emulator files (user must download)
 emulator/mGBA.exe
+emulator/mGBA.app
 emulator/mgba-sdl.exe
 emulator/*.dll
-emulator/mGBA-http*.exe
+emulator/mGBA-http*
 emulator/*.lua
 emulator/*.txt
 emulator/*.html
